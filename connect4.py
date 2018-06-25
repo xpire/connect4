@@ -78,7 +78,7 @@ class game(object):
         #1 check vertical
         for k in range(ncols):
             for j in range(0,ncols-4):
-                
+                pass
         #2 check horizontal
         #3 check diagonals
         return
