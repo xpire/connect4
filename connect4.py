@@ -6,6 +6,9 @@ import itertools as it
 #7 columns, 6 rows board. Choose one column that is not filled to put ur counter
 ncol = 7
 nrow = 6
+
+#An instance of the game, which holds the board, (and heights), cursor position
+#player, and the game's current value (denoted as a 1 for p0 win, -1 for p1 win, and inbetween)
 class game(object):
     """docstring for board."""
     def __init__(self):
@@ -17,6 +20,7 @@ class game(object):
         self.player = 0 #alternates between player 0 and player 1
         self.value = 0  #1 for a win (player 0), -1 for a win (player 1)
 
+    #show game state
     def show(self):
         print("Turn:{}, Player_{}'s move:".format(self.turn,self.player))
         print("heights:{}".format(self.heights))
@@ -34,11 +38,13 @@ class game(object):
             print(" ")
         print("*" + "-"*(2*ncol-1) + "*")
 
+    #sanity check for possible input of moves
     def possible(self, move):
         if move in ['l','L','r','R',' ']: #left, right, space
             return 1
         return 0
 
+    #validity check if the current move is allowed in the game
     def valid(self, move):
         if self.possible(move):
             if move in ['l','L']:
@@ -61,6 +67,7 @@ class game(object):
                     return 1
         return 0
 
+    #makes the move happen
     def make_move(self, m):
         if m in ['l','L']:
             self.cursor-=1
@@ -73,20 +80,26 @@ class game(object):
             self.board[y][self.cursor] = self.player
             self.heights[self.cursor] += 1
 
+    #update the boards value (give an evaluation of current state of game)
+    #1 for player0 win
+    #-1 for player1 win
+    #0 for draw
+    #a fraction will give an indicator of who is more likely to win atm
     def update_value(self):
         #check the state of 0s (any 4s, 3s, 2s and 1s that could potentially be winning)
         #1 check vertical
         for k in range(ncols):
             for j in range(0,ncols-4):
-                
+
         #2 check horizontal
         #3 check diagonals
         return
 
+#player input
 def player_input():
     move = input("What Move?")
     if not move:
-        return 'x'
+        return 'x' #dummy variable coz i keep accidentally not returning a value
     return move[0]
 
 #Actual Game part:
