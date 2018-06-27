@@ -6,6 +6,7 @@ import itertools as it
 #7 columns, 6 rows board. Choose one column that is not filled to put ur counter
 ncol = 7
 nrow = 6
+winLen = 4
 class game(object):
     """docstring for board."""
     def __init__(self):
@@ -72,16 +73,61 @@ class game(object):
             y = self.heights[self.cursor]
             self.board[y][self.cursor] = self.player
             self.heights[self.cursor] += 1
+            if self.player == 0:
+                self.player = 1
+            elif self.player == 1:
+                self.player = 0
+        return 
 
     def update_value(self):
         #check the state of 0s (any 4s, 3s, 2s and 1s that could potentially be winning)
         #1 check vertical
-        for k in range(ncols):
-            for j in range(0,ncols-4):
-                pass
+        for k in range(ncol):
+            for j in range(nrow):
+                if(j >= winLen) and not self.board[j][k] == ' ':
+                    win = True
+                    for check in range(j-winLen+1,j):
+                        if not self.board[check][k] == self.board[j][k]:
+                            win = False
+                            break
+                    if win == True:
+                        if self.board[j][k] == 1:
+                            self.value = -1
+                        elif self.board[j][k] == 0:
+                            self.value = 1
+                else: 
+                    pass
         #2 check horizontal
+        for k in range(ncol):
+            for j in range(nrow):
+                if(k >= winLen-1) and not self.board[j][k] == ' ':
+                    win = True
+                    for check in range(k-winLen+1,k):
+                        if not self.board[j][check] == self.board[j][k]:
+                            win = False
+                    if win == True:
+                        if self.board[j][k] == 1:
+                            self.value = -1
+                        elif self.board[j][k] == 0:
+                            self.value = 1
+                else: 
+                    pass
         #3 check diagonals
-        return
+        for k in range(ncol):
+            for j in range(nrow):
+                if(k >= winLen-1 and j >= winLen-1) and not self.board[j][k] == ' ':
+                    win = True
+                    for diff in range(winLen):
+                        if not self.board[j-diff][k-diff] == self.board[j][k]:
+                            win = False
+                    if win == True:
+                        if self.board[j][k] == 1:
+                            self.value = -1
+                        elif self.board[j][k] == 0:
+                                self.value = 1
+                else: 
+                    pass
+        return 
 
 def player_input():
     move = input("What Move?")
@@ -92,21 +138,23 @@ def player_input():
 #Actual Game part:
 if __name__ == "__main__":
     g = game()
+    g.show()
+
     while abs(g.value) != 1:
         #get move, ask game.player for move
-        g.show()
+
         player_move = player_input()
         if (g.valid(player_move)):
-            if player_move in ['l','L','r','R']:
+            if player_move in ['l','L','r','R', ' ']:
                 g.make_move(player_move)
-                continue
-            pass
+                g.show()
+                g.update_value()
+                
         else:
             print("Sorry, invalid move, try again.")
+            g.show()
             continue
         #apply move
-        g.make_move(player_move)
         #clean up
-        g.player = (g.player+1)%2
-        g.update_value()
+        #g.player = (g.player+1)%2
     print("The game ended with {}, player {} won!".format(g.value, 0.5*g.value + 0.5))
