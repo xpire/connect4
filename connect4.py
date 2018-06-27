@@ -84,7 +84,7 @@ class game(object):
                 self.player = 1
             elif self.player == 1:
                 self.player = 0
-        return 
+        return
 
     #update the boards value (give an evaluation of current state of game)
     #1 for player0 win
@@ -93,7 +93,47 @@ class game(object):
     #a fraction will give an indicator of who is more likely to win atm
     def update_value(self):
         #check the state of 0s (any 4s, 3s, 2s and 1s that could potentially be winning)
-        #1 check vertical
+
+        for k in range(ncol):
+            for j in range(nrow):
+                if not self.board[j][k] == '':
+                    #1 check vertical
+                    if j >= winLen:
+                        win = True
+                    for check in range(j-winLen+1,j):
+                        if not self.board[check][k] == self.board[j][k]:
+                            win = False
+                            break
+                    if win == True:
+                        if self.board[j][k] == 1:
+                            self.value = -1
+                        elif self.board[j][k] == 0:
+                            self.value = 1
+
+                    #2 check horizontal
+                    if k >= winLen-1:
+                        win = True
+                        for check in range(k-winLen+1,k):
+                            if not self.board[j][check] == self.board[j][k]:
+                                win = False
+                        if win == True:
+                            if self.board[j][k] == 1:
+                                self.value = -1
+                            elif self.board[j][k] == 0:
+                                self.value = 1
+                    #3 check diagonals
+                    if k >= winLen-1 and j >= winLen-1:
+                        win = True
+                        for diff in range(winLen):
+                            if not self.board[j-diff][k-diff] == self.board[j][k]:
+                                win = False
+                        if win == True:
+                            if self.board[j][k] == 1:
+                                self.value = -1
+                            elif self.board[j][k] == 0:
+                                self.value = 1
+
+        '''
         for k in range(ncol):
             for j in range(nrow):
                 if(j >= winLen) and not self.board[j][k] == ' ':
@@ -107,7 +147,7 @@ class game(object):
                             self.value = -1
                         elif self.board[j][k] == 0:
                             self.value = 1
-                else: 
+                else:
                     pass
         #2 check horizontal
         for k in range(ncol):
@@ -122,7 +162,7 @@ class game(object):
                             self.value = -1
                         elif self.board[j][k] == 0:
                             self.value = 1
-                else: 
+                else:
                     pass
         #3 check diagonals
         for k in range(ncol):
@@ -137,9 +177,10 @@ class game(object):
                             self.value = -1
                         elif self.board[j][k] == 0:
                                 self.value = 1
-                else: 
+                else:
                     pass
-        return 
+        '''
+        return
 
 #player input
 def player_input():
@@ -162,7 +203,7 @@ if __name__ == "__main__":
                 g.make_move(player_move)
                 g.show()
                 g.update_value()
-                
+
         else:
             print("Sorry, invalid move, try again.")
             g.show()
