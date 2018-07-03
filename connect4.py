@@ -6,21 +6,7 @@ import itertools as it
 #7 columns, 6 rows board. Choose one column that is not filled to put ur counter
 ncol = 7
 nrow = 6
-connect = 4
-import connect_player
-
-#checking a connect_row given as a string, and seeing who won
-def check(string):
-    score = 0
-    if 0 in string and 1 in string:
-        pass
-    else:
-        for k in range(len(string)):
-            if string[k] == 0:
-                score -=1
-            elif string[k] == 1:
-                score +=1
-    return score
+winLen = 4
 
 #An instance of the game, which holds the board, (and heights), cursor position
 #player, and the game's current value (denoted as a 1 for p0 win, -1 for p1 win, and inbetween)
@@ -95,6 +81,11 @@ class game(object):
             y = self.heights[self.cursor]
             self.board[y][self.cursor] = self.player
             self.heights[self.cursor] += 1
+            if self.player == 0:
+                self.player = 1
+            elif self.player == 1:
+                self.player = 0
+        return
 
 
     #update the boards value (give an evaluation of current state of game)
@@ -104,51 +95,51 @@ class game(object):
     #a fraction will give an indicator of who is more likely to win atm
     def update_value(self):
         #check the state of 0s (any 4s, 3s, 2s and 1s that could potentially be winning)
-        #1 check vertical
-        i = 0
-        print("VERTICAL")
-        for k in range(ncol): #vary x
-            for j in range(0,nrow-3): #vary y
-                print("checking 4 in a row {} ({},{}) to ({},{})".format(i,k,j,k,j+3))
-                #check
-                connect_n = []
-                for l in range(connect):
-                    connect_n.append(self.board[j+l][k])
-                val = check(connect_n)
-                print("connect_n:{}, val:{}".format(connect_n,val))
-                i+=1
-        #2 check horizontal
-        print("HORIZONTAL")
-        for j in range(nrow): #vary y
-            for k in range(0,ncol-3): #vary x
-                print("checking 4 in a row {} ({},{}) to ({},{})".format(i,k,j,k+3,j))
-                #check
-                connect_n = []
-                for l in range(connect):
-                    connect_n.append(self.board[j][k+l])
-                val = check(connect_n)
-                print("connect_n:{}, val:{}".format(connect_n,val))
-                i+=1
-        #3 check diagonals
-        print("DIAGONALS")
-        for j in range(0,nrow-3): #vary y
-            for k in range(0,ncol-3): #vary x
-                print("checking 4 in a row first {} ({},{}) to ({},{})".format(i,k,j,k+3,j+3))
-                #check
-                connect_n = []
-                for l in range(connect):
-                    connect_n.append(self.board[j+l][k+l])
-                val = check(connect_n)
-                print("connect_n:{}, val:{}".format(connect_n,val))
-                i+=1
-                print("checking 4 in a row second {} ({},{}) to ({},{})".format(i,k,j+3,k+3,j))
-                #check
-                connect_n = []
-                for l in range(connect):
-                    connect_n.append(self.board[j+connect-1-l][k+l])
-                val = check(connect_n)
-                print("connect_n:{}, val:{}".format(connect_n,val))
-                i+=1
+
+        for k in range(ncol):
+            for j in range(nrow):
+                if not self.board[j][k] == '':
+                    #1 check vertical
+                    if j >= winLen-1:
+                        win_v = True
+                        for check in range(j-winLen+1,j):
+                            if not self.board[check][k] == self.board[j][k]:
+                                win_v = False
+                                break
+                    else:
+                        win_v = False
+
+                    #2 check horizontal
+                    if k >= winLen-1:
+                        win_h = True
+                        for check in range(k-winLen+1,k):
+                            if not self.board[j][check] == self.board[j][k]:
+                                win_h = False
+                                break
+                    else:
+                        win_h = False
+
+                    #3 check diagonals
+                    if j >= winLen-1:
+                        win_d1 = True
+                        win_d2 = True
+                        for diff in range(winLen):
+                            if not k >= winLen-1 or not self.board[j-diff][k-diff] == self.board[j][k]:
+                                win_d1 = False
+
+                            if not k + winLen-1 < ncol or not self.board[j-diff][k+diff] == self.board[j][k]:
+                                win_d2 = False
+
+                            if not win_d1 and not win_d2:
+                                break
+                    else:
+                        win_d1 = False
+                        win_d2 = False
+                    if win_h or win_v or win_d1 or win_d2:
+                        if self.board[j][k] == 1:
+                            self.value = -1
+                        elif self.board[j][k] == 0:
+                            self.value = 1
         return
 
 #player input
@@ -162,21 +153,23 @@ def player_input():
 #Actual Game part:
 if __name__ == "__main__":
     g = game()
+    g.show()
+
     while abs(g.value) != 1:
         #get move, ask game.player for move
-        g.show()
+
         player_move = player_input()
         if (g.valid(player_move)):
-            if player_move in ['l','L','r','R']:
+            if player_move in ['l','L','r','R', ' ']:
                 g.make_move(player_move)
-                continue
-            pass
+                g.show()
+                g.update_value()
+
         else:
             print("Sorry, invalid move, try again.")
+            g.show()
             continue
         #apply move
-        g.make_move(player_move)
         #clean up
-        g.player = (g.player+1)%2
-        g.update_value()
+        #g.player = (g.player+1)%2
     print("The game ended with {}, player {} won!".format(g.value, 0.5*g.value + 0.5))
