@@ -29,7 +29,7 @@ class game(object):
         else:
             print('\033[1;93m', end='')
         print('Player_{}\'s \033[0m move:'.format(self.player))
-        print('heights:{}'.format(self.heights))
+        print('Heights:{}'.format(self.heights))
         for k in range(self.cursor):
             print('  ', end='')
         print(' v', end='')
@@ -77,7 +77,7 @@ class game(object):
                     return True
         return False
 
-    #makes the move happen
+    #makes the move happen and increments turn
     def make_move(self, m):
         if m in ['l','L']:
             self.cursor-=1
