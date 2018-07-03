@@ -99,92 +99,50 @@ class game(object):
                 if not self.board[j][k] == '':
                     #1 check vertical
                     if j >= winLen:
-                        win = True
-                    for check in range(j-winLen+1,j):
-                        if not self.board[check][k] == self.board[j][k]:
-                            win = False
-                            break
-                    if win == True:
-                        if self.board[j][k] == 1:
-                            self.value = -1
-                        elif self.board[j][k] == 0:
-                            self.value = 1
+                        win_v = True
+                        for check in range(j-winLen+1,j):
+                            if not self.board[check][k] == self.board[j][k]:
+                                win_v = False
+                                break
+                    else:
+                        win_v = False
 
                     #2 check horizontal
                     if k >= winLen-1:
-                        win = True
+                        win_h = True
                         for check in range(k-winLen+1,k):
                             if not self.board[j][check] == self.board[j][k]:
-                                win = False
-                        if win == True:
-                            if self.board[j][k] == 1:
-                                self.value = -1
-                            elif self.board[j][k] == 0:
-                                self.value = 1
-                    #3 check diagonals
-                    if k >= winLen-1 and j >= winLen-1:
-                        win = True
-                        for diff in range(winLen):
-                            if not self.board[j-diff][k-diff] == self.board[j][k]:
-                                win = False
-                        if win == True:
-                            if self.board[j][k] == 1:
-                                self.value = -1
-                            elif self.board[j][k] == 0:
-                                self.value = 1
+                                win_h = False
+                                break
+                    else:
+                        win_h = False
 
-        '''
-        for k in range(ncol):
-            for j in range(nrow):
-                if(j >= winLen) and not self.board[j][k] == ' ':
-                    win = True
-                    for check in range(j-winLen+1,j):
-                        if not self.board[check][k] == self.board[j][k]:
-                            win = False
-                            break
-                    if win == True:
+                    #3 check diagonals
+                    if j >= winLen-1:
+                        win_d1 = True
+                        win_d2 = True
+                        for diff in range(winLen):
+                            if not k >= winLen-1 or not self.board[j-diff][k-diff] == self.board[j][k]:
+                                win_d1 = False
+
+                            if not k + winLen-1 < ncol or not self.board[j-diff][k+diff] == self.board[j][k]:
+                                win_d2 = False
+
+                            if not win_d1 and not win_d2:
+                                break
+                    else:
+                        win_d1 = False
+                        win_d2 = False
+                    if win_h or win_v or win_d1 or win_d2:
                         if self.board[j][k] == 1:
                             self.value = -1
                         elif self.board[j][k] == 0:
                             self.value = 1
-                else:
-                    pass
-        #2 check horizontal
-        for k in range(ncol):
-            for j in range(nrow):
-                if(k >= winLen-1) and not self.board[j][k] == ' ':
-                    win = True
-                    for check in range(k-winLen+1,k):
-                        if not self.board[j][check] == self.board[j][k]:
-                            win = False
-                    if win == True:
-                        if self.board[j][k] == 1:
-                            self.value = -1
-                        elif self.board[j][k] == 0:
-                            self.value = 1
-                else:
-                    pass
-        #3 check diagonals
-        for k in range(ncol):
-            for j in range(nrow):
-                if(k >= winLen-1 and j >= winLen-1) and not self.board[j][k] == ' ':
-                    win = True
-                    for diff in range(winLen):
-                        if not self.board[j-diff][k-diff] == self.board[j][k]:
-                            win = False
-                    if win == True:
-                        if self.board[j][k] == 1:
-                            self.value = -1
-                        elif self.board[j][k] == 0:
-                                self.value = 1
-                else:
-                    pass
-        '''
         return
 
 #player input
 def player_input():
-    move = input("What Move?")
+    move = input("What Move? ")
     if not move:
         return 'x' #dummy variable coz i keep accidentally not returning a value
     return move[0]
