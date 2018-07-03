@@ -98,7 +98,7 @@ class game(object):
             for j in range(nrow):
                 if not self.board[j][k] == '':
                     #1 check vertical
-                    if j >= winLen:
+                    if j >= winLen-1:
                         win_v = True
                         for check in range(j-winLen+1,j):
                             if not self.board[check][k] == self.board[j][k]:
