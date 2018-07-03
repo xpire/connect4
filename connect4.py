@@ -6,7 +6,7 @@ import itertools as it
 #7 columns, 6 rows board. Choose one column that is not filled to put ur counter
 ncol = 7
 nrow = 6
-winLen = 4
+connect = 4
 
 #An instance of the game, which holds the board, (and heights), cursor position
 #player, and the game's current value (denoted as a 1 for p0 win, -1 for p1 win, and inbetween)
@@ -106,9 +106,9 @@ class game(object):
             for j in range(nrow):
                 if not self.board[j][k] == '':
                     #1 check vertical
-                    if j >= winLen-1:
+                    if j >= connect-1:
                         win_v = True
-                        for check in range(j-winLen+1,j):
+                        for check in range(j-connect+1,j):
                             if not self.board[check][k] == self.board[j][k]:
                                 win_v = False
                                 break
@@ -116,9 +116,9 @@ class game(object):
                         win_v = False
 
                     #2 check horizontal
-                    if k >= winLen-1:
+                    if k >= connect-1:
                         win_h = True
-                        for check in range(k-winLen+1,k):
+                        for check in range(k-connect+1,k):
                             if not self.board[j][check] == self.board[j][k]:
                                 win_h = False
                                 break
@@ -126,14 +126,14 @@ class game(object):
                         win_h = False
 
                     #3 check diagonals
-                    if j >= winLen-1:
+                    if j >= connect-1:
                         win_d1 = True
                         win_d2 = True
-                        for diff in range(winLen):
-                            if not k >= winLen-1 or not self.board[j-diff][k-diff] == self.board[j][k]:
+                        for diff in range(connect):
+                            if not k >= connect-1 or not self.board[j-diff][k-diff] == self.board[j][k]:
                                 win_d1 = False
 
-                            if not k + winLen-1 < ncol or not self.board[j-diff][k+diff] == self.board[j][k]:
+                            if not k + connect-1 < ncol or not self.board[j-diff][k+diff] == self.board[j][k]:
                                 win_d2 = False
 
                             if not win_d1 and not win_d2:
