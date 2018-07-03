@@ -8,6 +8,14 @@ ncol = 7
 nrow = 6
 connect = 4
 
+P1 = 1
+P2 = 2
+
+WIN_P1 = 1
+WIN_P2 = -1
+DRAW = 0
+CONTINUE = 2
+
 #An instance of the game, which holds the board, (and heights), cursor position
 #player, and the game's current value (denoted as a 1 for p0 win, -1 for p1 win, and inbetween)
 class game(object):
@@ -18,16 +26,18 @@ class game(object):
         self.heights = [0 for x in range(ncol)]
         self.cursor = 0 #possible positions: [0,...,ncol-1]
         self.turn = 0   #the current turn
-        self.player = 0 #alternates between player 0 and player 1
-        self.value = 0  #1 for a win (player 0), -1 for a win (player 1)
+        self.player = P1 #alternates between player 0 and player 1
+        self.value = CONTINUE  #1 for a win (player 0), -1 for a win (player 1)
 
     #show game state
     def show(self):
         print('Turn:{} '.format(self.turn) ,end='')
-        if self.player == 0:
+
+        if self.player == P1:
             print('\033[1;31m', end='')
-        else:
+        elif self.player == P2:
             print('\033[1;93m', end='')
+
         print('Player_{}\'s \033[0m move:'.format(self.player))
         print('Heights:{}'.format(self.heights))
         for k in range(self.cursor):
@@ -40,9 +50,9 @@ class game(object):
         for y in range(nrow-1,-1,-1):
             print('|',end='')
             for x in range(ncol):
-                if self.board[y][x] == 0:
+                if self.board[y][x] == P1:
                     print('\033[1;31m', end='')
-                elif self.board[y][x] == 1:
+                elif self.board[y][x] == P2:
                     print('\033[1;93m', end='')
                 print('{}'.format(self.board[y][x]), end='\033[0m|')
             print(' ')
@@ -89,10 +99,10 @@ class game(object):
             y = self.heights[self.cursor]
             self.board[y][self.cursor] = self.player
             self.heights[self.cursor] += 1
-            if self.player == 0:
-                self.player = 1
-            elif self.player == 1:
-                self.player = 0
+            if self.player == P1:
+                self.player = P2
+            elif self.player == P2:
+                self.player = P1
         self.turn += 1
 
     #update the boards value (give an evaluation of current state of game)
@@ -102,6 +112,14 @@ class game(object):
     #a fraction will give an indicator of who is more likely to win atm
     def update_value(self):
         #check the state of 0s (any 4s, 3s, 2s and 1s that could potentially be winning)
+        draw = True
+        for k in range(ncol):
+            for j in range(nrow):
+                if self.board[j][k] == ' ':
+                    draw = False
+        if draw:
+            self.value = DRAW
+
         for k in range(ncol):
             for j in range(nrow):
                 if not self.board[j][k] == '':
@@ -141,11 +159,12 @@ class game(object):
                     else:
                         win_d1 = False
                         win_d2 = False
+
                     if win_h or win_v or win_d1 or win_d2:
                         if self.board[j][k] == 1:
-                            self.value = -1
+                            self.value = WIN_P2
                         elif self.board[j][k] == 0:
-                            self.value = 1
+                            self.value = WIN_P1
         return
 
 #player input
@@ -160,7 +179,7 @@ if __name__ == '__main__':
     g = game()
     g.show()
 
-    while abs(g.value) != 1:
+    while abs(g.value) == CONTINUE:
         #get move, ask game.player for move
 
         player_move = player_input()
@@ -177,4 +196,7 @@ if __name__ == '__main__':
         #apply move
         #clean up
         #g.player = (g.player+1)%2
-    print('The game ended with {}, player {} won!'.format(g.value, 0.5*g.value + 0.5))
+    if g.value == WIN_P1 or g.value == WIN_P2:
+        print('The game ended with {}, player {} won!'.format(g.value, 0.5*g.value + 0.5))
+    if g.value == DRAW:
+        print('The game ended with a draw!')
