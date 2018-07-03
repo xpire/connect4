@@ -11,7 +11,7 @@ winLen = 4
 #An instance of the game, which holds the board, (and heights), cursor position
 #player, and the game's current value (denoted as a 1 for p0 win, -1 for p1 win, and inbetween)
 class game(object):
-    """docstring for board."""
+    '''docstring for board.'''
     def __init__(self):
         super(game, self).__init__()
         self.board = [[' ' for x in range(ncol)] for y in range(nrow)]
@@ -23,27 +23,36 @@ class game(object):
 
     #show game state
     def show(self):
-        print("Turn:{}, Player_{}'s move:".format(self.turn,self.player))
-        print("heights:{}".format(self.heights))
+        print('Turn:{} '.format(self.turn) ,end='')
+        if self.player == 0:
+            print('\033[1;31m', end='')
+        else:
+            print('\033[1;93m', end='')
+        print('Player_{}\'s \033[0m move:'.format(self.player))
+        print('heights:{}'.format(self.heights))
         for k in range(self.cursor):
-            print("  ", end="")
-        print(" v", end="")
+            print('  ', end='')
+        print(' v', end='')
         for k in range(ncol-self.cursor):
-            print(" ", end="")
-        print(" ")
-        print("*" + "-"*(2*ncol-1) + "*")
+            print(' ', end='')
+        print(' ')
+        print('*' + '-'*(2*ncol-1) + '*')
         for y in range(nrow-1,-1,-1):
-            print("|",end="")
+            print('|',end='')
             for x in range(ncol):
-                print("{}|".format(self.board[y][x]), end="")
-            print(" ")
-        print("*" + "-"*(2*ncol-1) + "*")
+                if self.board[y][x] == 0:
+                    print('\033[1;31m', end='')
+                elif self.board[y][x] == 1:
+                    print('\033[1;93m', end='')
+                print('{}'.format(self.board[y][x]), end='\033[0m|')
+            print(' ')
+        print('*' + '-'*(2*ncol-1) + '*')
 
     #sanity check for possible input of moves
     def possible(self, move):
         if move in ['l','L','r','R',' ']: #left, right, space
-            return 1
-        return 0
+            return True
+        return False
 
     #validity check if the current move is allowed in the game
     def valid(self, move):
@@ -53,20 +62,20 @@ class game(object):
                 # if self.cursor <= 0:
                 #     return 0
                 # else:
-                return 1
+                return True
             elif move in ['r','R']:
                 #move cursor right
                 # if self.cursor >= nrow:
                 #     return 0
                 # else:
-                return 1
+                return True
             elif move == ' ':
                 #place counter here
                 if self.heights[self.cursor] >= nrow:
-                    return 0
+                    return False
                 else:
-                    return 1
-        return 0
+                    return True
+        return False
 
     #makes the move happen
     def make_move(self, m):
@@ -84,7 +93,7 @@ class game(object):
                 self.player = 1
             elif self.player == 1:
                 self.player = 0
-        return
+        self.turn += 1
 
     #update the boards value (give an evaluation of current state of game)
     #1 for player0 win
@@ -93,7 +102,6 @@ class game(object):
     #a fraction will give an indicator of who is more likely to win atm
     def update_value(self):
         #check the state of 0s (any 4s, 3s, 2s and 1s that could potentially be winning)
-
         for k in range(ncol):
             for j in range(nrow):
                 if not self.board[j][k] == '':
@@ -142,13 +150,13 @@ class game(object):
 
 #player input
 def player_input():
-    move = input("What Move? ")
+    move = input('What Move? ')
     if not move:
         return 'x' #dummy variable coz i keep accidentally not returning a value
     return move[0]
 
 #Actual Game part:
-if __name__ == "__main__":
+if __name__ == '__main__':
     g = game()
     g.show()
 
@@ -163,10 +171,10 @@ if __name__ == "__main__":
                 g.update_value()
 
         else:
-            print("Sorry, invalid move, try again.")
+            print('Sorry, invalid move, try again.')
             g.show()
             continue
         #apply move
         #clean up
         #g.player = (g.player+1)%2
-    print("The game ended with {}, player {} won!".format(g.value, 0.5*g.value + 0.5))
+    print('The game ended with {}, player {} won!'.format(g.value, 0.5*g.value + 0.5))
