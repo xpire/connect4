@@ -2,6 +2,8 @@ import random
 import sys, time
 import itertools as it
 
+import connect_player
+
 #game mechanics:
 #7 columns, 6 rows board. Choose one column that is not filled to put ur counter
 ncol = 7
@@ -44,22 +46,16 @@ class game(object):
     def possible(self, move):
         if move in ['l','L','r','R',' ']: #left, right, space
             return 1
+        elif move in ['1','2','3','4','5','6','7',1,2,3,4,5,6,7]: #column number
+            return 1
         return 0
 
     #validity check if the current move is allowed in the game
     def valid(self, move):
         if self.possible(move):
-            if move in ['l','L']:
-                #move cursor left
-                # if self.cursor <= 0:
-                #     return 0
-                # else:
+            if move in ['l','L','r','R']:
                 return 1
-            elif move in ['r','R']:
-                #move cursor right
-                # if self.cursor >= nrow:
-                #     return 0
-                # else:
+            elif move in ['1','2','3','4','5','6','7',1,2,3,4,5,6,7]:
                 return 1
             elif move == ' ':
                 #place counter here
@@ -77,6 +73,8 @@ class game(object):
         elif m in ['r','R']:
             self.cursor+=1
             self.cursor = self.cursor%ncol
+        elif m in ['1','2','3','4','5','6','7',1,2,3,4,5,6,7]:
+            self.cursor = int(m)-1
         else:# m == ' ':
             y = self.heights[self.cursor]
             self.board[y][self.cursor] = self.player
@@ -160,10 +158,9 @@ if __name__ == "__main__":
 
         player_move = player_input()
         if (g.valid(player_move)):
-            if player_move in ['l','L','r','R', ' ']:
-                g.make_move(player_move)
-                g.show()
-                g.update_value()
+            g.make_move(player_move)
+            g.show()
+            g.update_value()
 
         else:
             print("Sorry, invalid move, try again.")
@@ -172,4 +169,4 @@ if __name__ == "__main__":
         #apply move
         #clean up
         #g.player = (g.player+1)%2
-    print("The game ended with {}, player {} won!".format(g.value, 0.5*g.value + 0.5))
+    print("The game ended with {}, player {} won!".format(g.value, int(0.5*g.value + 0.5)))
