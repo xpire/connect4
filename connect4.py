@@ -118,15 +118,6 @@ class game(object):
     def update_value(self):
         #check the state of winning 4 in a rows and update value accordingly
 
-        #draw check, if game is filled and not winning
-        draw = True
-        for k in range(ncol):
-            for j in range(nrow):
-                if self.board[j][k] == ' ':
-                    draw = False
-        if draw:
-            self.value = DRAW
-
         #checking for 4 in a rows
         for k in range(ncol):
             for j in range(nrow):
@@ -169,16 +160,28 @@ class game(object):
                         win_d2 = False
 
                     if win_h or win_v or win_d1 or win_d2:
-                        if self.board[j][k] == 2:
+                        if self.board[j][k] == P2:
                             self.value = WIN_P2
-                        elif self.board[j][k] == 1:
+                        elif self.board[j][k] == P1:
                             self.value = WIN_P1
+
+        #draw check, if game is filled and not winning
+        draw = True
+        for k in range(ncol):
+            for j in range(nrow):
+                if self.board[j][k] == ' ':
+                    draw = False
+        if draw:
+            self.value = DRAW
+
+        #else, self.value is unchanged (assert that it is 2?)
+
         return
 
 #player input
-def player_input():
+def player_input(board):
     move = input('What Move? ')
-    #move = connect_player.move()
+    fake_move = connect_player.compute(board)
     if not move:
         return 'x' #dummy variable coz i keep accidentally not returning a value
     return move[0]
@@ -191,20 +194,19 @@ if __name__ == '__main__':
     while abs(g.value) == CONTINUE:
         #get move, ask game.player for move
 
-        player_move = player_input()
+        player_move = player_input(g.board)
         if (g.valid(player_move)):
+            #apply move
             g.make_move(player_move)
             g.show()
             g.update_value()
-
         else:
             print('Sorry, invalid move, try again.')
             g.show()
             continue
-        #apply move
         #clean up
-        #g.player = (g.player+1)%2
     if g.value == WIN_P1 or g.value == WIN_P2:
+        #GAME WON
         print('The game ended with {}, '.format(g.value),end="")
 
         if g.value == WIN_P1:
