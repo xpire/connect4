@@ -40,7 +40,7 @@ class game(object):
         elif self.player == P2:
             print('\033[1;93m', end='')
 
-        print('Player_{}\'s \033[0m move:'.format(self.player))
+        print('Player_{}\'s\033[0m move:'.format(self.player))
         print('Heights:{}'.format(self.heights))
         print("Value:{}".format(self.value))
 
