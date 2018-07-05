@@ -91,11 +91,14 @@ class game(object):
         if m in ['l','L']:
             self.cursor-=1
             self.cursor = self.cursor%ncol
+            return #does not iterate self.turn
         elif m in ['r','R']:
             self.cursor+=1
             self.cursor = self.cursor%ncol
+            return #does not iterate self.turn
         elif m in ['1','2','3','4','5','6','7',1,2,3,4,5,6,7]:
             self.cursor = int(m)-1
+            return #does not iterate self.turn
         else:# m == ' ':
             y = self.heights[self.cursor]
             self.board[y][self.cursor] = self.player
@@ -108,12 +111,14 @@ class game(object):
 
 
     #update the boards value (give an evaluation of current state of game)
-    #1 for player0 win
-    #-1 for player1 win
+    #1 for player1 win
+    #-1 for player2 win
     #0 for draw
-    #a fraction will give an indicator of who is more likely to win atm
+    #2 if the game is still in motion
     def update_value(self):
-        #check the state of 0s (any 4s, 3s, 2s and 1s that could potentially be winning)
+        #check the state of winning 4 in a rows and update value accordingly
+
+        #draw check, if game is filled and not winning
         draw = True
         for k in range(ncol):
             for j in range(nrow):
@@ -122,9 +127,10 @@ class game(object):
         if draw:
             self.value = DRAW
 
+        #checking for 4 in a rows
         for k in range(ncol):
             for j in range(nrow):
-                if not self.board[j][k] == '':
+                if not self.board[j][k] == ' ':
                     #1 check vertical
                     if j >= connect-1:
                         win_v = True
@@ -163,9 +169,9 @@ class game(object):
                         win_d2 = False
 
                     if win_h or win_v or win_d1 or win_d2:
-                        if self.board[j][k] == 1:
+                        if self.board[j][k] == 2:
                             self.value = WIN_P2
-                        elif self.board[j][k] == 0:
+                        elif self.board[j][k] == 1:
                             self.value = WIN_P1
         return
 
@@ -199,6 +205,14 @@ if __name__ == '__main__':
         #clean up
         #g.player = (g.player+1)%2
     if g.value == WIN_P1 or g.value == WIN_P2:
-        print('The game ended with {}, player {} won!'.format(g.value, int(0.5*g.value + 0.5)))
+        print('The game ended with {}, '.format(g.value),end="")
+
+        if g.value == WIN_P1:
+            print('\033[1;31m', end='')
+        elif g.value == WIN_P2:
+            print('\033[1;93m', end='')
+
+        print('player {}\033[0m'.format(int(-0.5*g.value + 1.5)),end="")
+        print(' won!')
     if g.value == DRAW:
         print('The game ended with a draw!')
