@@ -21,15 +21,39 @@ CONTINUE = 2
 #An instance of the game, which holds the board, (and heights), cursor position
 #player, and the game's current value (denoted as a 1 for p0 win, -1 for p1 win, and inbetween)
 class game(object):
+    class cellStat(object):
+        def __init__(self):
+            # |
+            self.vert = 0
+            # -
+            self.horz = 0
+            # /
+            self.fdia = 0
+            # \
+            self.bdia = 0
+            # length of longest line in each direction
+            self.n = 0
+            self.ne = 0
+            self.e = 0
+            self.se = 0
+            self.s = 0
+            self.sw = 0
+            self.w = 0
+            self.nw = 0
+
+
     '''docstring for board.'''
     def __init__(self):
         super(game, self).__init__()
         self.board = [[' ' for x in range(ncol)] for y in range(nrow)]
+        self.statBoard = [[self.cellStat() for x in range(ncol)] for y in range(nrow)]
         self.heights = [0 for x in range(ncol)]
-        self.cursor = 0 #possible positions: [0,...,ncol-1]
-        self.turn = 0   #the current turn
-        self.player = P1 #alternates between player 0 and player 1
-        self.value = CONTINUE  #1 for a win (player 0), -1 for a win (player 1)
+        self.cursor = 0         #possible positions: [0,...,ncol-1]
+        self.turn = 0           #the current turn
+        self.player = P1        #alternates between player 0 and player 1
+        self.value = CONTINUE   #1 for a win (player 0), -1 for a win (player 1)
+        self.stat = [0 for i in range(2*connect+1)]
+        self.stat[connect] = ncol*nrow
 
     #show game state
     def show(self):
@@ -109,6 +133,186 @@ class game(object):
                 self.player = P1
         self.turn += 1
 
+
+    def update_stat(self):
+        x = self.cursor
+        y = self.heights[x] -1
+        cellC = self.statBoard[y][x]
+        P = self.board[y][x]
+        # count horizontal change
+        l = 0
+        r = 0
+        print('x: {} y: {}'.format(x,y))
+        alone_f = True
+        remL = False
+        remR = False
+        remD = False
+        remRFD = False
+        remLFD = False
+        remLBD = False
+        remRBD = False
+        # check left line
+        cellL = self.statBoard[y][x-1]
+        lenL = cellL.horz
+
+        if self.board[y][x] == self.board[y][x-1]:
+            if not lenL == 0:
+                alone_f = False
+            if not(lenL <= 1 and lenL >= -1 and cellL.vert <= 1 and cellL.vert >= -1 and cellL.fdia <= 1 and cellL.fdia >= -1 and cellL.bdia <= 1 and cellL.bdia >= -1):
+                remL = True
+        else:
+            print(self.board[y][x])
+            print(self.board[y][x-1])
+        # check right line
+        cellR = self.statBoard[y][x+1]
+        lenR = cellR.horz
+        if self.board[y][x] == self.board[y][x+1]:
+            if not lenR == 0:
+                alone_f = False
+            if not(lenR <= 1 and lenR >= -1 and cellR.vert <= 1 and cellR.vert >= -1 and cellR.fdia <= 1 and cellR.fdia >= -1 and cellR.bdia <= 1 and cellR.bdia >= -1):
+                remR = True
+            newHorzLen = lenR + lenL + 1
+        else:
+            newHorzLen = 1
+        print('left = {}, right = {}, total length = {}'.format(lenL, lenR, newHorzLen))
+
+        # update statboard
+        if not lenL == 0:
+            for i in lenL:
+                self.statBoard[y][x-i].horz = newHorzLen
+        if not lenR == 0:
+            for i in lenR:
+                self.statBoard[y][x+i].horz = newHorzLen
+
+        # modify stat for horizontal line
+        if remL:
+            self.stat[connect + lenL] -= 1
+        if remR:
+            self.stat[connect + lenR] -= 1
+        if not (lenR == 0 and lenL == 0):
+            if newHorzLen >= connect:
+                self.stat[connect + connect] += 1
+            else:
+                self.stat[connect + newHorzLen] += 1
+
+        # check down line
+        cellD = self.statBoard[y-1][x]
+        lenD = cellD.vert
+        if self.board[y][x] == cellD:
+            if not lenD == 0:
+                alone_f = False
+            if not(lenD <= 1 and lenD >= -1 and cellD.horz <= 1 and cellD.horz >= -1 and cellD.fdia <= 1 and cellD.fdia >= -1 and cellD.bdia <= 1 and cellD.bdia >= -1):
+                remD = True
+            newVertLen = lenD + 1
+        else:
+            newVertLen = 0
+
+        # update statboard
+        if not lenD == 0:
+            for i in lenD:
+                self.statBoard[y-i][x].vert = newVertLen
+
+        # modify stat for vertical line
+        if remD:
+            self.stat[connect + lenD] -= 1
+        if not lenD == 0:
+            if newVertLen >= connect:
+                self.stat[connect + connect] += 1
+            else:
+                self.stat[connect + newVertLen] += 1
+
+        # check forward diagonal line (up-right)
+        cellRFD = self.statBoard[y+1][x+1]
+        lenRFD = cellRFD.fdia
+        if self.board[y][x] == self.board[y+1][x+1]:
+            if not lenRFD == 0:
+                alone_f = False
+            if not(lenRFD <= 1 and lenRFD >= -1 and cellRFD.horz <= 1 and cellRFD.horz >= -1 and cellRFD.vert <= 1 and cellRFD.vert >= -1 and cellRFD.bdia <= 1 and cellRFD.bdia >= -1):
+                remRFD = True
+
+        cellLFD = self.statBoard[y-1][x-1]
+        lenLFD = cellLFD.fdia
+        if self.board[y][x] == self.board[y-1][x-1]:
+            if not lenLFD == 0:
+                alone_f = False
+            if not(lenLFD <= 1 and lenLFD >= -1 and cellLFD.horz <= 1 and cellLFD.horz >= -1 and cellLFD.vert <= 1 and cellLFD.vert >= -1 and cellLFD.bdia <= 1 and cellLFD.bdia >= -1):
+                remLFD = True
+            newFDiaLen = lenRFD + lenLFD + 1
+        else:
+            newFDiaLen = 0
+
+        # update statboard
+        if not lenRFD == 0:
+            for i in lenRFD:
+                self.statBoard[y+i][x+i].fdia = newFDiaLen
+
+        if not lenLFD == 0:
+            for i in abs(lenLFD):
+                self.statBoard[y-i][x-i].fdia = newFDiaLen
+
+        # modify stat for forward diagonal line
+        if remRFD:
+            self.stat[connect + lenRFD] -= 1
+        if remLFD:
+            self.stat[connect + lenLFD] -= 1
+        if not (lenRFD == 0 and lenLFD == 0):
+            if newRDiaLen >= connect:
+                self.stat[connect + connect] += 1
+            else:
+                self.stat[connect + newRDiaLen] += 1
+
+        # check backward diagonal line (up-left)
+        cellLBD = self.statBoard[y+1][x-1]
+        lenLBD = cellLBD.bdia
+        if self.board[y][x] == self.board[y+1][x-1]:
+            if not lenLBD == 0:
+                alone_f = False
+            if not(lenLBD <= 1 and lenLBD >= -1 and cellLBD.horz <= 1 and cellLBD.horz >= -1 and cellLBD.vert <= 1 and cellLBD.vert >= -1 and cellLBD.fdia <= 1 and cellLBD.fdia >= -1):
+                remLBD = True
+
+        cellRBD = self.statBoard[y-1][x+1]
+        lenRBD = cellRBD.bdia
+        if self.board[y][x] == self.board[y-1][x+1]:
+            if not lenRBD == 0:
+                alone_f = False
+            if not(lenRBD <= 1 and lenRBD >= -1 and cellRBD.horz <= 1 and cellRBD.horz >= -1 and cellRBD.vert <= 1 and cellRBD.vert >= -1 and cellRBD.fdia <= 1 and cellRBD.fdia >= -1):
+                remRBD = True
+            newBDiaLen = lenRBD + lenRBD + 1
+        else:
+            newBDiaLen = 0
+
+        # update statboard
+        if not lenRBD == 0:
+            for i in lenRBD:
+                self.statBoard[y-i][x+i].bdia = newBDiaLen
+
+        if not lenLBD == 0:
+            for i in abs(lenLBD):
+                self.statBoard[y+i][x-i].fdia = newBDiaLen
+
+        # modify stat for forward diagonal line
+        if remRBD:
+            self.stat[connect + lenRBD] -= 1
+        if remLBD:
+            self.stat[connect + lenLBD] -= 1
+        if not (lenRBD == 0 and lenLBD == 0):
+            if newBDiaLen >= connect:
+                self.stat[connect + connect] += 1
+            else:
+                self.stat[connect + newBDiaLen] += 1
+        # check for lonely cell
+        if alone_f:
+            if P == P1:
+                player_sign = 1
+            if P == P2:
+                player_sign = -1
+            self.stat[connect + player_sign*1] += 1
+        # always one less available cell
+        self.stat[connect] -= 1
+        for i in range(nrow):
+            for j in range(ncol):
+                print(self.statBoard[i][j], end='')
+            print('')
 
     #update the boards value (give an evaluation of current state of game)
     #1 for player1 win
@@ -199,6 +403,9 @@ if __name__ == '__main__':
             #apply move
             g.make_move(player_move)
             g.show()
+            if player_move == ' ':
+                g.update_stat()
+                print(g.stat)
             g.update_value()
         else:
             print('Sorry, invalid move, try again.')
