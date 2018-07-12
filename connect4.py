@@ -143,10 +143,10 @@ class game(object):
         remE = False
         remW = False
         remS = False
-        remRFD = False
-        remLFD = False
-        remLBD = False
-        remRBD = False
+        remNE = False
+        remNW = False
+        remSE = False
+        remSW = False
 
         # cells relative to the current cell
         statC = self.statBoard[y][x]
@@ -170,6 +170,33 @@ class game(object):
         else:
             statS = self.statBoard[y-1][x]
             cellS = self.board[y-1][x]
+        if x+1 >= ncol or y+1 >= nrow:
+            statNE = None
+            cellNE = None
+        else:
+            cellNE = self.board[y+1][x-1]
+            statNE = self.statBoard[y+1][x-1]
+
+        if x-1 < 0 or y+1 >= nrow:
+            statNW = None
+            cellNW = None
+        else:
+            cellNW = self.board[y+1][x-1]
+            statNW = self.statBoard[y+1][x-1]
+
+        if x-1 < 0 or y-1 < 0:
+            statSW = None
+            cellSW = None
+        else:
+            cellSW = self.board[y-1][x-1]
+            statSW = self.statBoard[y-1][x-1]
+
+        if x+1 >= ncol or y-1 < 0:
+            statSE = None
+            cellSE = None
+        else:
+            cellSE = self.board[y-1][x+1]
+            statSE = self.statBoard[y-1][x+1]
 
         # lengths of existing lines in surrounding directions
         def lenFind(curCell, comCell, stat):
@@ -184,23 +211,10 @@ class game(object):
         lenE = lenFind(cellC, cellE, statE)
         lenW = lenFind(cellC, cellW, statW)
         lenS = lenFind(cellC, cellS, statS)
-        '''
-        if statE == None:
-            lenE = 0
-        else:
-            if cellC == cellE:
-                lenE = statE.horz
-            else:
-                lenE = 0
-
-        if statW == None:
-            lenW = 0
-        else:
-            if cellC == cellW:
-                lenW = statW.horz
-            else:
-                lenW = 0
-        '''
+        lenNE = lenFind(cellC, cellNE, statNE)
+        lenNW = lenFind(cellC, cellNW, statNW)
+        lenSE = lenFind(cellC, cellSE, statSE)
+        lenSW = lenFind(cellC, cellSW, statSW)
 
         # check left line
         if cellC == cellE:
@@ -245,7 +259,7 @@ class game(object):
         if cellC == cellS:
             if not lenS == 0:
                 alone_f = False
-            if not( lenS == 0 and statS.vert == 0 and statS.fdia == 0 and statS.bdia == 0):
+            if not( lenS == 0 and statS.horz == 0 and statS.fdia == 0 and statS.bdia == 0):
                 remS = True
 
         newVertLen = lenS + self.player_sign(P)
@@ -253,7 +267,7 @@ class game(object):
         # update statboard
         if not lenS == 0:
             for i in range(abs(lenS)):
-                self.statBoard[y-i][x].horz = newVertLen
+                self.statBoard[y-i][x].vert = newVertLen
 
         # modify stat for horizontal line
         if remS:
@@ -263,113 +277,77 @@ class game(object):
                 self.stat[connect + self.player_sign(P)*connect] += 1
             else:
                 self.stat[connect + newVertLen] += 1
-        '''
-        # check down line
-        cellD = self.statBoard[y-1][x]
-        lenD = cellD.vert
-        if self.board[y][x] == cellD:
-            if not lenD == 0:
+
+        # check forward diagonal line
+        if cellC == cellNE:
+            if not lenNE == 0:
                 alone_f = False
-            if not(lenD <= 1 and lenD >= -1 and cellD.horz <= 1 and cellD.horz >= -1 and cellD.fdia <= 1 and cellD.fdia >= -1 and cellD.bdia <= 1 and cellD.bdia >= -1):
-                remD = True
-            newVertLen = lenD + self.player_sign(P)
-        else:
-            newVertLen = 0
+            if not( lenNE == 0 and statNE.vert == 0 and statNE.horz == 0 and statNE.bdia == 0):
+                remNE = True
+
+        if cellC == cellSW:
+            if not lenSW == 0:
+                alone_f = False
+            if not( lenSW == 0 and statSW.vert == 0 and statSW.horz == 0 and statSW.bdia == 0):
+                remSW = True
+
+        newFDiaLen = lenNE + lenSW + self.player_sign(P)
 
         # update statboard
-        if not lenD == 0:
-            for i in range(abs(lenD)):
-                self.statBoard[y-i][x].vert = newVertLen
-
-        # modify stat for vertical line
-        if remD:
-            self.stat[connect + lenD] -= 1
-        if not lenD == 0:
-            if abs(newVertLen) >= connect:
-                self.stat[connect + self.player_sign(P)*connect] += 1
-            else:
-                self.stat[connect + newVertLen] += 1
-
-        # check forward diagonal line (up-right)
-        cellRFD = self.statBoard[y+1][x+1]
-        lenRFD = cellRFD.fdia
-        if self.board[y][x] == self.board[y+1][x+1]:
-            if not lenRFD == 0:
-                alone_f = False
-            if not(lenRFD <= 1 and lenRFD >= -1 and cellRFD.horz <= 1 and cellRFD.horz >= -1 and cellRFD.vert <= 1 and cellRFD.vert >= -1 and cellRFD.bdia <= 1 and cellRFD.bdia >= -1):
-                remRFD = True
-
-        cellLFD = self.statBoard[y-1][x-1]
-        lenLFD = cellLFD.fdia
-        if self.board[y][x] == self.board[y-1][x-1]:
-            if not lenLFD == 0:
-                alone_f = False
-            if not(lenLFD <= 1 and lenLFD >= -1 and cellLFD.horz <= 1 and cellLFD.horz >= -1 and cellLFD.vert <= 1 and cellLFD.vert >= -1 and cellLFD.bdia <= 1 and cellLFD.bdia >= -1):
-                remLFD = True
-            newFDiaLen = lenRFD + lenLFD + self.player_sign(P)
-        else:
-            newFDiaLen = 1
-
-        # update statboard
-        if not lenRFD == 0:
-            for i in range(abs(lenRFD)):
+        if not lenNE == 0:
+            for i in range(abs(lenNE)):
                 self.statBoard[y+i][x+i].fdia = newFDiaLen
 
-        if not lenLFD == 0:
-            for i in range(abs(lenLFD)):
+        if not lenSW == 0:
+            for i in range(abs(lenSW)):
                 self.statBoard[y-i][x-i].fdia = newFDiaLen
 
-        # modify stat for forward diagonal line
-        if remRFD:
-            self.stat[connect + lenRFD] -= 1
-        if remLFD:
-            self.stat[connect + lenLFD] -= 1
-        if not (lenRFD == 0 and lenLFD == 0):
+        # modify stat for fdia line
+        if remNE:
+            self.stat[connect + lenNE] -= 1
+        if remSW:
+            self.stat[connect + lenSW] -= 1
+        if not lenNE == 0 and not lenSW == 0:
             if abs(newFDiaLen) >= connect:
                 self.stat[connect + self.player_sign(P)*connect] += 1
             else:
                 self.stat[connect + newFDiaLen] += 1
 
-        # check backward diagonal line (up-left)
-        cellLBD = self.statBoard[y+1][x-1]
-        lenLBD = cellLBD.bdia
-        if self.board[y][x] == self.board[y+1][x-1]:
-            if not lenLBD == 0:
+        # check backward diagonal line
+        if cellC == cellSE:
+            if not lenSE == 0:
                 alone_f = False
-            if not(lenLBD <= 1 and lenLBD >= -1 and cellLBD.horz <= 1 and cellLBD.horz >= -1 and cellLBD.vert <= 1 and cellLBD.vert >= -1 and cellLBD.fdia <= 1 and cellLBD.fdia >= -1):
-                remLBD = True
+            if not( lenSE == 0 and statSE.vert == 0 and statSE.horz == 0 and statSE.bdia == 0):
+                remSE = True
 
-        cellRBD = self.statBoard[y-1][x+1]
-        lenRBD = cellRBD.bdia
-        if self.board[y][x] == self.board[y-1][x+1]:
-            if not lenRBD == 0:
+        if cellC == cellNW:
+            if not lenNW == 0:
                 alone_f = False
-            if not(lenRBD <= 1 and lenRBD >= -1 and cellRBD.horz <= 1 and cellRBD.horz >= -1 and cellRBD.vert <= 1 and cellRBD.vert >= -1 and cellRBD.fdia <= 1 and cellRBD.fdia >= -1):
-                remRBD = True
-            newBDiaLen = lenRBD + lenRBD + self.player_sign(P)
-        else:
-            newBDiaLen = self.player_sign(P)
+            if not( lenNW == 0 and statNW.vert == 0 and statNW.horz == 0 and statNW.bdia == 0):
+                remNW = True
+
+        newBDiaLen = lenSE + lenNW + self.player_sign(P)
 
         # update statboard
-        if not lenRBD == 0:
-            for i in range(abs(lenRBD)):
+        if not lenSE == 0:
+            for i in range(abs(lenSE)):
                 self.statBoard[y-i][x+i].bdia = newBDiaLen
 
-        if not lenLBD == 0:
-            for i in range(abs(lenLBD)):
-                self.statBoard[y+i][x-i].fdia = newBDiaLen
+        if not lenNW == 0:
+            for i in range(abs(lenNW)):
+                self.statBoard[y+i][x-i].bdia = newBDiaLen
 
-        # modify stat for forward diagonal line
-        if remRBD:
-            self.stat[connect + lenRBD] -= 1
-        if remLBD:
-            self.stat[connect + lenLBD] -= 1
-        if not (lenRBD == 0 and lenLBD == 0):
+        # modify stat for fdia line
+        if remSE:
+            self.stat[connect + lenSE] -= 1
+        if remNW:
+            self.stat[connect + lenNW] -= 1
+        if not lenSE == 0 and not lenNW == 0:
             if abs(newBDiaLen) >= connect:
                 self.stat[connect + self.player_sign(P)*connect] += 1
             else:
                 self.stat[connect + newBDiaLen] += 1
-        '''
+
         # check for lonely cell
         if alone_f:
             print('LONELY')
