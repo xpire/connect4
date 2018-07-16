@@ -135,9 +135,8 @@ class game(object):
         x = self.cursor
         y = self.heights[x] -1
         P = self.board[y][x]
+
         # count horizontal change
-        l = 0
-        r = 0
         print('x: {} y: {}'.format(x,y))
         alone_f = True
         remE = False
@@ -174,8 +173,8 @@ class game(object):
             statNE = None
             cellNE = None
         else:
-            cellNE = self.board[y+1][x-1]
-            statNE = self.statBoard[y+1][x-1]
+            cellNE = self.board[y+1][x+1]
+            statNE = self.statBoard[y+1][x+1]
 
         if x-1 < 0 or y+1 >= nrow:
             statNW = None
@@ -199,42 +198,64 @@ class game(object):
             statSE = self.statBoard[y-1][x+1]
 
         # lengths of existing lines in surrounding directions
-        def lenFind(curCell, comCell, stat):
+        def lenFind(curCell, comCell, stat, func):
             if stat == None:
                 return 0
             else:
                 if curCell == comCell:
-                    return stat.horz
+                    return func(stat)
                 else:
                     return 0
+        def findHorz(statCell):
+            return statCell.horz
 
-        lenE = lenFind(cellC, cellE, statE)
-        lenW = lenFind(cellC, cellW, statW)
-        lenS = lenFind(cellC, cellS, statS)
-        lenNE = lenFind(cellC, cellNE, statNE)
-        lenNW = lenFind(cellC, cellNW, statNW)
-        lenSE = lenFind(cellC, cellSE, statSE)
-        lenSW = lenFind(cellC, cellSW, statSW)
+        def findVert(statCell):
+            return statCell.vert
 
+        def findFdia(statCell):
+            return statCell.fdia
+
+        def findBdia(statCell):
+            return statCell.bdia
+
+        lenE = lenFind(cellC, cellE, statE, findHorz)
+        lenW = lenFind(cellC, cellW, statW, findHorz)
+        lenS = lenFind(cellC, cellS, statS, findVert)
+        lenNE = lenFind(cellC, cellNE, statNE, findFdia)
+        lenNW = lenFind(cellC, cellNW, statNW, findBdia)
+        lenSE = lenFind(cellC, cellSE, statSE, findBdia)
+        lenSW = lenFind(cellC, cellSW, statSW, findFdia)
+
+        # set default value for cell
+        ps = self.player_sign(P)
+        statC.horz = ps
+        statC.vert = ps
+        statC.fdia = ps
+        statC.bdia = ps
         # check left line
         if cellC == cellE:
             if not lenE == 0:
                 alone_f = False
-            print('horz = {}, vert = {}, fdia = {}, bdia = {}'.format(lenE, statE.vert, statE.fdia, statE.bdia))
-            #if not(lenL < 1 and lenL > -1 and cellL.vert < 1 and cellL.vert > -1 and cellL.fdia < 1 and cellL.fdia > -1 and cellL.bdia < 1 and cellL.bdia > -1):
-            if not( lenE == 0 and statE.vert == 0 and statE.fdia == 0 and statE.bdia == 0):
-                remE = True
+            print('L: horz = {}, vert = {}, fdia = {}, bdia = {}'.format(statE.horz, statE.vert, statE.fdia, statE.bdia))
+            if not(statE.horz == 0 and statE.vert == 0 and statE.fdia == 0 and statE.bdia == 0):
+                if abs(statE.horz) > 1:
+                        remE = True
+                if abs(statE.fdia) == 1 and abs(statE.vert) == 1 or abs(statE.horz) > 1 and abs(statE.bdia) == 1:
+                    remE = True
 
         # check right line
         if cellC == cellW:
             if not lenW == 0:
                 alone_f = False
             if not(lenW < 1 and lenW > -1 and statW.vert < 1 and statW.vert > -1 and statW.fdia < 1 and statW.fdia > -1 and statW.bdia < 1 and statW.bdia > -1):
-                remW = True
+                if abs(statS.horz) > 1:
+                    remW = True
+                if abs(statS.fdia) == 1 and abs(statS.vert) == 1 and abs(statS.horz) == 1 and abs(statS.bdia) == 1:
+                    remW = True
 
         newHorzLen = lenW + lenE + self.player_sign(P)
 
-        print('left = {}, right = {}, total length = {}'.format(lenE, lenW, newHorzLen))
+        #print('left = {}, right = {}, total length = {}'.format(lenE, lenW, newHorzLen))
         print('player = {}'.format(self.player_sign(P)))
         # update statboard
         if not lenE == 0:
@@ -243,11 +264,17 @@ class game(object):
         if not lenW == 0:
             for i in range(abs(lenW)):
                 self.statBoard[y][x+i].horz = newHorzLen
+        if not statW == None:
+            print('W: horz = {}, vert = {}, fdia = {}, bdia = {}'.format(statW.horz, statW.vert, statW.fdia, statW.bdia))
+        if not statE == None:
+            print('E: horz = {}, vert = {}, fdia = {}, bdia = {}'.format(statE.horz, statE.vert, statE.fdia, statE.bdia))
 
         # modify stat for horizontal line
         if remE:
+            print('remove E')
             self.stat[connect + lenE] -= 1
         if remW:
+            print('remove W')
             self.stat[connect + lenW] -= 1
         if not (lenW == 0 and lenE == 0):
             if abs(newHorzLen) >= connect:
@@ -260,7 +287,13 @@ class game(object):
             if not lenS == 0:
                 alone_f = False
             if not( lenS == 0 and statS.horz == 0 and statS.fdia == 0 and statS.bdia == 0):
-                remS = True
+                if abs(statS.vert) > 1:
+                    remS = True
+                if abs(statS.fdia) == 1 and abs(statS.vert) == 1 and abs(statS.horz) == 1 and abs(statS.bdia) == 1:
+                    remS = True
+
+        if not statS == None:
+            print('S: horz = {}, vert = {}, fdia = {}, bdia = {}'.format(statS.horz, statS.vert, statS.fdia, statS.bdia))
 
         newVertLen = lenS + self.player_sign(P)
 
@@ -271,6 +304,7 @@ class game(object):
 
         # modify stat for horizontal line
         if remS:
+            print('remove S')
             self.stat[connect + lenS] -= 1
         if not lenS == 0 :
             if abs(newVertLen) >= connect:
@@ -282,15 +316,25 @@ class game(object):
         if cellC == cellNE:
             if not lenNE == 0:
                 alone_f = False
-            if not( lenNE == 0 and statNE.vert == 0 and statNE.horz == 0 and statNE.bdia == 0):
-                remNE = True
+            if not( statNE.fdia == 0 and statNE.vert == 0 and statNE.horz == 0 and statNE.bdia == 0):
+                if abs(statNE.fdia) > 1:
+                    remNE = True
+                if abs(statNE.fdia) == 1 and abs(statNE.vert) == 1 and abs(statNE.horz) == 1 and abs(statNE.bdia) == 1:
+                    remNE = True
 
         if cellC == cellSW:
             if not lenSW == 0:
                 alone_f = False
-            if not( lenSW == 0 and statSW.vert == 0 and statSW.horz == 0 and statSW.bdia == 0):
-                remSW = True
+            if not( statSW.fdia == 0 and statSW.vert == 0 and statSW.horz == 0 and statSW.bdia == 0):
+                if  abs(statSW.fdia) > 1:
+                    remSW = True
+                if abs(statSW.fdia) == 1 and abs(statSW.vert) == 1 and abs(statSW.horz) == 1 and abs(statSW.bdia) == 1:
+                    remSW = True
 
+        if not statNE == None:
+            print('NE: horz = {}, vert = {}, fdia = {}, bdia = {}'.format(statNE.horz, statNE.vert, statNE.fdia, statNE.bdia))
+        if not statSW == None:
+            print('SW: horz = {}, vert = {}, fdia = {}, bdia = {}'.format(statSW.horz, statSW.vert, statSW.fdia, statSW.bdia))
         newFDiaLen = lenNE + lenSW + self.player_sign(P)
 
         # update statboard
@@ -305,9 +349,11 @@ class game(object):
         # modify stat for fdia line
         if remNE:
             self.stat[connect + lenNE] -= 1
+            print('remove NE')
         if remSW:
+            print('remove SW')
             self.stat[connect + lenSW] -= 1
-        if not lenNE == 0 and not lenSW == 0:
+        if not (lenNE == 0 and lenSW == 0):
             if abs(newFDiaLen) >= connect:
                 self.stat[connect + self.player_sign(P)*connect] += 1
             else:
@@ -317,16 +363,28 @@ class game(object):
         if cellC == cellSE:
             if not lenSE == 0:
                 alone_f = False
-            if not( lenSE == 0 and statSE.vert == 0 and statSE.horz == 0 and statSE.bdia == 0):
-                remSE = True
+            if not( statSE.fdia == 0 and statSE.vert == 0 and statSE.horz == 0 and statSE.bdia == 0):
+                if abs(statSE.bdia) > 1:
+                    remSE = True
+                if abs(statSE.fdia) == 1 and abs(statSE.vert) == 1 and abs(statSE.horz) == 1 and abs(statSE.bdia) == 1:
+                    remSE = True
+        if not statSE == None:
+            print('SE: horz = {}, vert = {}, fdia = {}, bdia = {}'.format(statSE.horz, statSE.vert, statSE.fdia, statSE.bdia))
 
         if cellC == cellNW:
             if not lenNW == 0:
                 alone_f = False
-            if not( lenNW == 0 and statNW.vert == 0 and statNW.horz == 0 and statNW.bdia == 0):
-                remNW = True
-
+            if not( statNW.bdia == 0):
+                if abs(statNW.bdia) > 1:
+                    print('LONG CUT')
+                    remNW = True
+                if abs(statNW.fdia) == 1 and abs(statNW.vert) == 1 and abs(statNW.horz) == 1 and abs(statNW.bdia) == 1:
+                    print('SINLGE CUT')
+                    remNW = True
+        if not statNW == None:
+            print('NW: horz = {}, vert = {}, fdia = {}, bdia = {}'.format(statNW.horz, statNW.vert, statNW.fdia, statNW.bdia))
         newBDiaLen = lenSE + lenNW + self.player_sign(P)
+        print('BDia Length: {}'.format(newBDiaLen))
 
         # update statboard
         if not lenSE == 0:
@@ -337,12 +395,14 @@ class game(object):
             for i in range(abs(lenNW)):
                 self.statBoard[y+i][x-i].bdia = newBDiaLen
 
-        # modify stat for fdia line
+        # modify stat for bdia line
         if remSE:
+            print('remove SE')
             self.stat[connect + lenSE] -= 1
         if remNW:
+            print('remove NW')
             self.stat[connect + lenNW] -= 1
-        if not lenSE == 0 and not lenNW == 0:
+        if not (lenSE == 0 and lenNW == 0):
             if abs(newBDiaLen) >= connect:
                 self.stat[connect + self.player_sign(P)*connect] += 1
             else:
