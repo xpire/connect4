@@ -257,12 +257,13 @@ class game(object):
 
         #print('left = {}, right = {}, total length = {}'.format(lenE, lenW, newHorzLen))
         print('player = {}'.format(self.player_sign(P)))
+
         # update statboard
         if not lenE == 0:
-            for i in range(abs(lenE)):
+            for i in range(abs(lenE)+1):
                 self.statBoard[y][x-i].horz = newHorzLen
         if not lenW == 0:
-            for i in range(abs(lenW)):
+            for i in range(abs(lenW)+1):
                 self.statBoard[y][x+i].horz = newHorzLen
         if not statW == None:
             print('W: horz = {}, vert = {}, fdia = {}, bdia = {}'.format(statW.horz, statW.vert, statW.fdia, statW.bdia))
@@ -299,7 +300,7 @@ class game(object):
 
         # update statboard
         if not lenS == 0:
-            for i in range(abs(lenS)):
+            for i in range(abs(lenS)+1):
                 self.statBoard[y-i][x].vert = newVertLen
 
         # modify stat for horizontal line
@@ -328,8 +329,10 @@ class game(object):
             if not( statSW.fdia == 0 and statSW.vert == 0 and statSW.horz == 0 and statSW.bdia == 0):
                 if  abs(statSW.fdia) > 1:
                     remSW = True
+                    print('REM LINE')
                 if abs(statSW.fdia) == 1 and abs(statSW.vert) == 1 and abs(statSW.horz) == 1 and abs(statSW.bdia) == 1:
                     remSW = True
+                    print('REM LONELY')
 
         if not statNE == None:
             print('NE: horz = {}, vert = {}, fdia = {}, bdia = {}'.format(statNE.horz, statNE.vert, statNE.fdia, statNE.bdia))
@@ -339,11 +342,11 @@ class game(object):
 
         # update statboard
         if not lenNE == 0:
-            for i in range(abs(lenNE)):
+            for i in range(abs(lenNE)+1):
                 self.statBoard[y+i][x+i].fdia = newFDiaLen
 
         if not lenSW == 0:
-            for i in range(abs(lenSW)):
+            for i in range(abs(lenSW)+1):
                 self.statBoard[y-i][x-i].fdia = newFDiaLen
 
         # modify stat for fdia line
@@ -388,11 +391,11 @@ class game(object):
 
         # update statboard
         if not lenSE == 0:
-            for i in range(abs(lenSE)):
+            for i in range(abs(lenSE)+1):
                 self.statBoard[y-i][x+i].bdia = newBDiaLen
 
         if not lenNW == 0:
-            for i in range(abs(lenNW)):
+            for i in range(abs(lenNW)+1):
                 self.statBoard[y+i][x-i].bdia = newBDiaLen
 
         # modify stat for bdia line
